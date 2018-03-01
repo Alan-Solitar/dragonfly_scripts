@@ -5,9 +5,12 @@ IntegerRef, Choice)
 grammar = Grammar("python")
 
 noSpaceNoCaps = Mimic("\\no-caps-on") + Mimic("\\no-space-on")
-def snake_case(variable):
+
+def snake(variable):
   var = str(variable).replace(' ','_')
-  Text(var).execute()
+  return var
+def snake_case(variable):
+  Text(snake(variable)).execute()
 
 def camel_case(variable):
   words = str(variable).split(' ')
@@ -35,6 +38,19 @@ def import_function(variable,text):
 def method_call(variable): 
   Text('.{}()'.format(str(variable))).execute() 
   Key('left').execute().upper()
+def call(variable):
+  var = snake(variable)
+  Text('{}()'.format(var)).execute()
+  Key('left').execute()
+def function(variable):
+  var = snake(variable)
+  command = Text('def {}():'.format(var)) + Key('left') + Key('left')
+  command.execute()
+def string(variable):
+  var = snake(variable)
+  Text("'{}'".format(var)).execute()
+
+
 class PythonMapping(MappingRule):
   name = "my_rules"
   #mappings
@@ -47,15 +63,18 @@ class PythonMapping(MappingRule):
     "pascal <variable>": Function(pascal_case),
     "lower <variable>":Function(lower_case),
     #python specific
-    "funk <variable>":Text('def'),
+    "fun <variable>":Function(function),
     "import <variable> as <text>":Function(import_function),
     "dot <variable>":Function(method_call),
-    'great peter':Text('works'),
+    "call <variable>":Function(call),
     #general stuff
+    "begin":Key('home'),
+    "end":Key('end'),
+    "next":Key('end')+Key('enter'),
     "code": BringApp('C:\Program Files (x86)\Microsoft VS Code'),
     "fox":BringApp('C:\Program Files\Mozilla Firefox'),
     "box":BringApp('C:\Program Files\Oracle\VirtualBox'),
-    "string <text>":Text("%(text)s = ''") + Key('left'),
+    "string <variable>":Function(string),
     "string literal <text>"         :Text("'%(text)s'"),
     "is list": Text(" = []") + Key('left'),
     "is tuple"             : Text(" = ()") + Key('left'),
